@@ -12,7 +12,7 @@ def image_to_matrix(path):
 
 if __name__ == '__main__':
 
-    data_path = '/Users/ivankachaikin/PycharmProjects/MCS/data.png'
+    data_path = 'data.png'
     data = image_to_matrix(data_path)
 
     figsize = (5.42667, 7.7)
