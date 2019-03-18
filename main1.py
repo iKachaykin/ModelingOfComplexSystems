@@ -1,6 +1,8 @@
 import numpy as np
 import imageio as imageio
 import matplotlib.pyplot as plt
+from scipy.interpolate import CubicSpline as cs
+from scipy.integrate import quad
 
 
 def image_to_matrix(path):
@@ -14,15 +16,19 @@ if __name__ == '__main__':
     data = image_to_matrix(data_path)
 
     figsize = (5.42667, 7.7)
+    grid = True
     line_number = 7
+    layer_number = 6
+    sub_splines_num = 3
+    sub_splines_dim = [3, 5, 9]
     min_dist_between_pixels = 20
     xmin, xmax, ymin, ymax = 0.0, 1.0, 0.0, 1.0
     y_all = []
     x, y = np.linspace(xmin, xmax, data.shape[1]), np.linspace(ymin, ymax, data.shape[0])[::-1]
     xx, yy = np.meshgrid(x, y)
     tmp_lst, tmp_big_lst = [], []
-    fig = plt.figure(1, figsize=figsize)
-
+    splines = []
+    sub_splines = []
     lines_starting_points = np.arange(data.shape[0])[data[:, 0] == 1]
 
     i, j = 0, 0
@@ -64,11 +70,28 @@ if __name__ == '__main__':
 
     y_all = np.array(y_all)
 
-    plt.axis([xmin, xmax, ymin, ymax])
-    for yi in y_all:
-        plt.plot(x, yi, 'k-')
-    plt.xticks([xmin, xmax], ['0', 'A'])
-    plt.yticks([ymin, ymax], ['0', 'B'])
+    for i in range(line_number):
+        splines.append(cs(x, y_all[i]))
+
+    for i in range(sub_splines_num):
+        sub_splines.append([])
+        x_tmp = np.linspace(xmin, xmax, sub_splines_dim[i])
+        for j in range(line_number):
+            sub_splines[i].append(cs(x_tmp, splines[j](x_tmp)))
+
+    for i in range(sub_splines_num):
+        fig = plt.figure(i+1, figsize=figsize)
+        plt.axis([xmin, xmax, ymin, ymax])
+        plt.grid(grid)
+        x_tmp = np.linspace(xmin, xmax, sub_splines_dim[i])
+        for xi_tmp in x_tmp:
+            plt.plot([xi_tmp, xi_tmp], [ymin, ymax], 'k--')
+        for j in range(line_number):
+            plt.plot(x_tmp, splines[j](x_tmp), 'ko')
+            plt.plot(x, y_all[j], 'k-')
+            plt.plot(x, sub_splines[i][j](x), 'k--')
+        plt.xticks(np.linspace(xmin, xmax, 5), ['0', '0.25A', '0.5A', '0.75A', 'A'])
+        plt.yticks(np.linspace(xmin, xmax, 5), ['0', '0.25B', '0.5B', '0.75B', 'B'])
 
     plt.show()
     plt.close()
