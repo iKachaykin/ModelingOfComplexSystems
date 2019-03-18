@@ -16,6 +16,7 @@ if __name__ == '__main__':
     data = image_to_matrix(data_path)
 
     figsize = (5.42667, 7.7)
+    buff = ''
     grid = True
     line_number = 7
     layer_number = 6
@@ -30,6 +31,10 @@ if __name__ == '__main__':
     splines = []
     sub_splines = []
     lines_starting_points = np.arange(data.shape[0])[data[:, 0] == 1]
+    annotate_x = 0.05
+    annotate_fontsize = 14
+    annotate_fontweight = 'bold'
+    integrals = np.zeros((sub_splines_num, layer_number))
 
     i, j = 0, 0
     while i < lines_starting_points.size:
@@ -80,7 +85,7 @@ if __name__ == '__main__':
             sub_splines[i].append(cs(x_tmp, splines[j](x_tmp)))
 
     for i in range(sub_splines_num):
-        fig = plt.figure(i+1, figsize=figsize)
+        plt.figure(i+1, figsize=figsize)
         plt.axis([xmin, xmax, ymin, ymax])
         plt.grid(grid)
         x_tmp = np.linspace(xmin, xmax, sub_splines_dim[i])
@@ -92,6 +97,20 @@ if __name__ == '__main__':
             plt.plot(x, sub_splines[i][j](x), 'k--')
         plt.xticks(np.linspace(xmin, xmax, 5), ['0', '0.25A', '0.5A', '0.75A', 'A'])
         plt.yticks(np.linspace(xmin, xmax, 5), ['0', '0.25B', '0.5B', '0.75B', 'B'])
+
+    for i in range(sub_splines_num):
+        plt.figure(i+1)
+        for j in range(layer_number):
+            plt.annotate(str(j+1), [annotate_x, (y_all[j, 0] + y_all[j+1, 0]) / 2.0], fontsize=annotate_fontsize,
+                         fontweight=annotate_fontweight)
+            integrals[i, j] = quad(lambda x: np.abs(sub_splines[i][j+1](x) - sub_splines[i][j](x)), xmin, xmax)[0]
+
+    for i in range(sub_splines_num):
+        for j in range(layer_number):
+            buff += '%.8f' % integrals[i, j] + '\t'
+        buff += '\n'
+
+    print(buff)
 
     plt.show()
     plt.close()
