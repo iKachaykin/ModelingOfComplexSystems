@@ -112,5 +112,16 @@ if __name__ == '__main__':
 
     print(buff)
 
+    plt.figure(sub_splines_num+1, figsize=figsize)
+    plt.axis([xmin, xmax, ymin, ymax])
+    plt.grid(grid)
+    for j in range(line_number):
+        plt.plot(x, y_all[j], 'k-')
+    for j in range(layer_number):
+        plt.annotate(str(j + 1), [annotate_x, (y_all[j, 0] + y_all[j + 1, 0]) / 2.0], fontsize=annotate_fontsize,
+                     fontweight=annotate_fontweight)
+    plt.xticks(np.linspace(xmin, xmax, 5), ['0', '0.25A', '0.5A', '0.75A', 'A'])
+    plt.yticks(np.linspace(xmin, xmax, 5), ['0', '0.25B', '0.5B', '0.75B', 'B'])
+
     plt.show()
     plt.close()
